@@ -30303,14 +30303,11 @@ var App = React.createClass({displayName: "App",
 var routes = (
   React.createElement(Route, {name: "app", path: "/", handler: App}, 
 
-    React.createElement(Route, {name: "posts", handler: PostsPage}, 
-      React.createElement(Route, {name: "showpost", path: ":postId", handler: PostPage}), 
-      React.createElement(DefaultRoute, {handler: PostPage})
-    ), 
+    React.createElement(Route, {name: "posts", handler: PostsPage}), 
+    React.createElement(Route, {name: "showpost", path: "/posts/:postId", handler: PostPage}), 
 
     React.createElement(Route, {name: "inbox", handler: Inbox}), 
-    React.createElement(Route, {name: "calendar", handler: Calendar}), 
-    React.createElement(DefaultRoute, {handler: PostsPage})
+    React.createElement(Route, {name: "calendar", handler: Calendar})
   )
 );
 
@@ -30467,7 +30464,8 @@ module.exports = React.createClass({displayName: "exports",
   render: function() {
     return(
       React.createElement("div", null, 
-        React.createElement("h1", null, "PostPage")
+        React.createElement("h1", null, "PostPage"), 
+        React.createElement("p", null, this.getParams().postId)
       )
     );
   }

@@ -52,14 +52,11 @@ var App = React.createClass({
 var routes = (
   <Route name="app" path="/" handler={App}>
 
-    <Route name="posts" handler={PostsPage}>
-      <Route name="showpost" path=":postId" handler={PostPage}/>
-      <DefaultRoute handler={PostPage}/>
-    </Route>
+    <Route name="posts" handler={PostsPage}/>
+    <Route name="showpost" path="/posts/:postId" handler={PostPage}/>
 
     <Route name="inbox" handler={Inbox}/>
     <Route name="calendar" handler={Calendar}/>
-    <DefaultRoute handler={PostsPage}/>
   </Route>
 );
 

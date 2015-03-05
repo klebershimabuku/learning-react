@@ -7,6 +7,7 @@ module.exports = React.createClass({
     return(
       <div>
         <h1>PostPage</h1>
+        <p>{this.getParams().postId}</p>
       </div>
     );
   }
