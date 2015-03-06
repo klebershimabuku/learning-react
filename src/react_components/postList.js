@@ -1,23 +1,23 @@
 var React = require('react');
-
 var $ = require('jquery');
-
 var Post = require('./post');
-
 var Paginator = require('./paginator');
+var Router = require('react-router');
 
 module.exports = React.createClass({
+  mixins: [Router.State],
   getInitialState: function() {
     return {
       posts: [],
       paginator: {},
-      url: "http://staging.shigotodoko.com/posts.json"
+      url: "http://staging.shigotodoko.com/posts.json",
+      currentPage: this.getParams().page || 1
     };
   },
 
   loadPosts: function() {
-    console.log(this.state.url);
-    this.requestPostsByUrl(this.state.url);
+    var url = this.state.url + "?page=" + this.state.currentPage;
+    this.requestPostsByUrl(url);
   },
 
   componentDidMount: function() {
@@ -25,8 +25,8 @@ module.exports = React.createClass({
   },
 
   update: function(pageNum) {
-    console.log("requesting page: " + pageNum);
     var url = this.state.url + '?page=' + pageNum;
+    this.setState({currentPage: pageNum});
     this.requestPostsByUrl(url);
   },
 
@@ -35,10 +35,6 @@ module.exports = React.createClass({
       url: url,
       dataType: 'json',
       success: function(results) {
-
-        console.log(results.posts);
-        console.log(results.paginator);
-
         this.setState({ posts: results.posts, paginator: results.paginator });
       }.bind(this),
       error: function(xhr, status, err) {
@@ -56,7 +52,7 @@ module.exports = React.createClass({
     return(
       <div>
         <ul className='list-unstyled'>{posts}</ul>
-        <Paginator paginate={this.update} paginator={this.state.paginator}/>
+        <Paginator paginate={this.update} paginator={this.state.paginator} currentPage={this.state.currentPage}/>
       </div>
     );
   }

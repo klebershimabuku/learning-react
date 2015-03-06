@@ -30271,11 +30271,11 @@ var Inbox = React.createClass({displayName: "Inbox",
   }
 });
 
-var Calendar = React.createClass({displayName: "Calendar",
+var NewPostPage = React.createClass({displayName: "NewPostPage",
   render: function() {
     return(
       React.createElement("div", null, 
-        React.createElement("h1", null, "Calendar")
+        React.createElement("h1", null, "Novo Anúncio")
       )
     );
   }
@@ -30287,9 +30287,8 @@ var App = React.createClass({displayName: "App",
       React.createElement("div", null, 
         React.createElement("header", null, 
           React.createElement("ul", null, 
-            React.createElement("li", null, React.createElement(Link, {to: "posts"}, "Posts")), 
-            React.createElement("li", null, React.createElement(Link, {to: "inbox"}, "Inbox")), 
-            React.createElement("li", null, React.createElement(Link, {to: "calendar"}, "Calendar"))
+            React.createElement("li", null, React.createElement(Link, {to: "posts"}, "Anúncios")), 
+            React.createElement("li", null, React.createElement(Link, {to: "sendPost"}, "Enviar Anúncio"))
           ), 
           "Logged in as Kleber"
         ), 
@@ -30305,9 +30304,11 @@ var routes = (
 
     React.createElement(Route, {name: "posts", handler: PostsPage}), 
     React.createElement(Route, {name: "showpost", path: "/posts/:postId", handler: PostPage}), 
+    React.createElement(Route, {name: "paginator", path: "/posts/page/:page", handler: PostsPage}), 
 
-    React.createElement(Route, {name: "inbox", handler: Inbox}), 
-    React.createElement(Route, {name: "calendar", handler: Calendar})
+    React.createElement(Route, {name: "sendPost", handler: NewPostPage}), 
+
+    React.createElement(DefaultRoute, {handler: PostsPage})
   )
 );
 
@@ -30320,11 +30321,14 @@ Router.run(routes, function(Handler) {
 
 },{"./postPage":193,"./postsPage":194,"react":188,"react-router":29}],190:[function(require,module,exports){
 var React = require('react');
+var Link = require('react-router').Link;
 
 module.exports = React.createClass({displayName: "exports",
   getInitialState: function() {
     return {
-      currentPage: 1
+      currentPage: 1,
+      previousPage: 1,
+      nextPage: 1
     }
   },
 
@@ -30342,14 +30346,15 @@ module.exports = React.createClass({displayName: "exports",
   },
 
   render: function() {
-    var nextPage = this.state.currentPage + 1;
-    var previousPage = this.state.currentPage - 1;
+    var currentPage = this.props.currentPage;
+    var nextPage = currentPage + 1;
+    var previousPage = currentPage - 1;
 
     return(
       React.createElement("nav", null, 
         React.createElement("ul", {className: "pager"}, 
-        React.createElement("li", null, React.createElement("a", {href: "#", onClick: this.loadPreviousPage}, "Previous")), 
-        React.createElement("li", null, React.createElement("a", {href: "#", onClick: this.loadNextPage}, "Next"))
+          React.createElement(Link, {to: "paginator", onClick: this.loadPreviousPage, params: { page: previousPage}}, "Previous"), 
+          React.createElement(Link, {to: "paginator", onClick: this.loadNextPage, params: { page: nextPage}}, "Next")
         )
       )
     );
@@ -30357,7 +30362,7 @@ module.exports = React.createClass({displayName: "exports",
 });
 
 
-},{"react":188}],191:[function(require,module,exports){
+},{"react":188,"react-router":29}],191:[function(require,module,exports){
 var React = require('react');
 var Link = require('react-router').Link;
 
@@ -30391,25 +30396,25 @@ module.exports = React.createClass({displayName: "exports",
 
 },{"react":188,"react-router":29}],192:[function(require,module,exports){
 var React = require('react');
-
 var $ = require('jquery');
-
 var Post = require('./post');
-
 var Paginator = require('./paginator');
+var Router = require('react-router');
 
 module.exports = React.createClass({displayName: "exports",
+  mixins: [Router.State],
   getInitialState: function() {
     return {
       posts: [],
       paginator: {},
-      url: "http://staging.shigotodoko.com/posts.json"
+      url: "http://staging.shigotodoko.com/posts.json",
+      currentPage: this.getParams().page || 1
     };
   },
 
   loadPosts: function() {
-    console.log(this.state.url);
-    this.requestPostsByUrl(this.state.url);
+    var url = this.state.url + "?page=" + this.state.currentPage;
+    this.requestPostsByUrl(url);
   },
 
   componentDidMount: function() {
@@ -30417,8 +30422,8 @@ module.exports = React.createClass({displayName: "exports",
   },
 
   update: function(pageNum) {
-    console.log("requesting page: " + pageNum);
     var url = this.state.url + '?page=' + pageNum;
+    this.setState({currentPage: pageNum});
     this.requestPostsByUrl(url);
   },
 
@@ -30427,10 +30432,6 @@ module.exports = React.createClass({displayName: "exports",
       url: url,
       dataType: 'json',
       success: function(results) {
-
-        console.log(results.posts);
-        console.log(results.paginator);
-
         this.setState({ posts: results.posts, paginator: results.paginator });
       }.bind(this),
       error: function(xhr, status, err) {
@@ -30448,14 +30449,14 @@ module.exports = React.createClass({displayName: "exports",
     return(
       React.createElement("div", null, 
         React.createElement("ul", {className: "list-unstyled"}, posts), 
-        React.createElement(Paginator, {paginate: this.update, paginator: this.state.paginator})
+        React.createElement(Paginator, {paginate: this.update, paginator: this.state.paginator, currentPage: this.state.currentPage})
       )
     );
   }
 });
 
 
-},{"./paginator":190,"./post":191,"jquery":1,"react":188}],193:[function(require,module,exports){
+},{"./paginator":190,"./post":191,"jquery":1,"react":188,"react-router":29}],193:[function(require,module,exports){
 var React = require('react');
 var Router = require('react-router');
 

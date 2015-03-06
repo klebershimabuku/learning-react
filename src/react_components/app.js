@@ -8,23 +8,12 @@ var RouteHandler = Router.RouteHandler;
 
 var PostsPage = require('./postsPage');
 var PostPage = require('./postPage');
-var PostPage = require('./postPage');
 
-var Inbox = React.createClass({
+var NewPostPage = React.createClass({
   render: function() {
     return(
       <div>
-        <h1>Inbox</h1>
-      </div>
-    );
-  }
-});
-
-var Calendar = React.createClass({
-  render: function() {
-    return(
-      <div>
-        <h1>Calendar</h1>
+        <h1>Novo Anúncio</h1>
       </div>
     );
   }
@@ -36,11 +25,9 @@ var App = React.createClass({
       <div>
         <header>
           <ul>
-            <li><Link to="posts">Posts</Link></li>
-            <li><Link to="inbox">Inbox</Link></li>
-            <li><Link to="calendar">Calendar</Link></li>
+            <li><Link to="posts">Anúncios</Link></li>
+            <li><Link to="sendPost">Enviar Anúncio</Link></li>
           </ul>
-          Logged in as Kleber
         </header>
 
         <RouteHandler/>
@@ -54,9 +41,11 @@ var routes = (
 
     <Route name="posts" handler={PostsPage}/>
     <Route name="showpost" path="/posts/:postId" handler={PostPage}/>
+    <Route name="paginator" path="/posts/page/:page" handler={PostsPage}/>
 
-    <Route name="inbox" handler={Inbox}/>
-    <Route name="calendar" handler={Calendar}/>
+    <Route name="sendPost" handler={NewPostPage}/>
+
+    <DefaultRoute handler={PostsPage}/>
   </Route>
 );
 
