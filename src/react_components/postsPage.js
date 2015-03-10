@@ -24,20 +24,22 @@ module.exports = React.createClass({
     var pageParams = this.getParams().page || 1;
     this.setState({currentPage: pageParams });
 
-    this.loadPostsFromPage(pageParams);
+    this.loadPosts(pageParams);
   },
 
   componentDidMount: function() {
     this.loadPosts();
   },
 
-  loadPosts: function() {
-    var url = 'http://staging.shigotodoko.com/posts.json?page=' + this.state.currentPage;
-    this.requestPostsByUrl(url);
-  },
+  loadPosts: function(pageNum) {
+    var _page = null;
+    if (typeof pageNum !== 'undefined') {
+      _page = pageNum;
+    } else {
+      _page = this.state.currentPage;
+    }
 
-  loadPostsFromPage: function(pageNum) {
-    var url = 'http://staging.shigotodoko.com/posts.json?page=' + pageNum;
+    var url = 'http://staging.shigotodoko.com/posts.json?page=' + _page;
     this.requestPostsByUrl(url);
   },
 
