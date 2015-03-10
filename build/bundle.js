@@ -30259,17 +30259,6 @@ var RouteHandler = Router.RouteHandler;
 
 var PostsPage = require('./postsPage');
 var PostPage = require('./postPage');
-var PostPage = require('./postPage');
-
-var Inbox = React.createClass({displayName: "Inbox",
-  render: function() {
-    return(
-      React.createElement("div", null, 
-        React.createElement("h1", null, "Inbox")
-      )
-    );
-  }
-});
 
 var NewPostPage = React.createClass({displayName: "NewPostPage",
   render: function() {
@@ -30289,8 +30278,7 @@ var App = React.createClass({displayName: "App",
           React.createElement("ul", null, 
             React.createElement("li", null, React.createElement(Link, {to: "posts"}, "Anúncios")), 
             React.createElement("li", null, React.createElement(Link, {to: "sendPost"}, "Enviar Anúncio"))
-          ), 
-          "Logged in as Kleber"
+          )
         ), 
 
         React.createElement(RouteHandler, null)
@@ -30324,37 +30312,17 @@ var React = require('react');
 var Link = require('react-router').Link;
 
 module.exports = React.createClass({displayName: "exports",
-  getInitialState: function() {
-    return {
-      currentPage: 1,
-      previousPage: 1,
-      nextPage: 1
-    }
-  },
-
-  loadPreviousPage: function() {
-    console.log("loading previous page..");
-    var previousPage = this.props.paginator.current_page - 1;
-    this.props.paginate(previousPage);
-  },
-
-  loadNextPage: function() {
-    console.log("loading next page..");
-    var currentPage = (this.props.paginator.current_page == 0) ? 1 : this.props.paginator.current_page;
-    var nextPage = currentPage + 1;
-    this.props.paginate(nextPage);
-  },
 
   render: function() {
-    var currentPage = this.props.currentPage;
+    var currentPage = parseInt(this.props.currentPage);
     var nextPage = currentPage + 1;
     var previousPage = currentPage - 1;
 
     return(
       React.createElement("nav", null, 
         React.createElement("ul", {className: "pager"}, 
-          React.createElement(Link, {to: "paginator", onClick: this.loadPreviousPage, params: { page: previousPage}}, "Previous"), 
-          React.createElement(Link, {to: "paginator", onClick: this.loadNextPage, params: { page: nextPage}}, "Next")
+          React.createElement(Link, {to: "paginator", params: { page: previousPage}}, "Previous"), 
+          React.createElement(Link, {to: "paginator", params: { page: nextPage}}, "Next")
         )
       )
     );
@@ -30396,67 +30364,25 @@ module.exports = React.createClass({displayName: "exports",
 
 },{"react":188,"react-router":29}],192:[function(require,module,exports){
 var React = require('react');
-var $ = require('jquery');
 var Post = require('./post');
-var Paginator = require('./paginator');
-var Router = require('react-router');
 
 module.exports = React.createClass({displayName: "exports",
-  mixins: [Router.State],
-  getInitialState: function() {
-    return {
-      posts: [],
-      paginator: {},
-      url: "http://staging.shigotodoko.com/posts.json",
-      currentPage: this.getParams().page || 1
-    };
-  },
-
-  loadPosts: function() {
-    var url = this.state.url + "?page=" + this.state.currentPage;
-    this.requestPostsByUrl(url);
-  },
-
-  componentDidMount: function() {
-    this.loadPosts();
-  },
-
-  update: function(pageNum) {
-    var url = this.state.url + '?page=' + pageNum;
-    this.setState({currentPage: pageNum});
-    this.requestPostsByUrl(url);
-  },
-
-  requestPostsByUrl: function(url) {
-    $.ajax({
-      url: url,
-      dataType: 'json',
-      success: function(results) {
-        this.setState({ posts: results.posts, paginator: results.paginator });
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  },
-
-  render: function() {
-    var posts = this.state.posts.map(function(post) {
+   render: function() {
+    var posts = this.props.posts.map(function(post) {
       var description = post.description.substring(0, 147) + "...";
       return(React.createElement(Post, {identification: post.id, key: post.id, title: post.title, companyName: post.company_name, location: post.location}, description));
     });
 
     return(
       React.createElement("div", null, 
-        React.createElement("ul", {className: "list-unstyled"}, posts), 
-        React.createElement(Paginator, {paginate: this.update, paginator: this.state.paginator, currentPage: this.state.currentPage})
+        React.createElement("ul", {className: "list-unstyled"}, posts)
       )
     );
   }
 });
 
 
-},{"./paginator":190,"./post":191,"jquery":1,"react":188,"react-router":29}],193:[function(require,module,exports){
+},{"./post":191,"react":188}],193:[function(require,module,exports){
 var React = require('react');
 var Router = require('react-router');
 
@@ -30479,6 +30405,8 @@ var App = require('./app');
 var PostList = require('./postList');
 var PostsPage = require('./postsPage');
 var Post = require('./post');
+var $ = require('jquery');
+var Paginator = require('./paginator');
 
 var Router = require('react-router');
 var DefaultRoute = Router.DefaultRoute;
@@ -30487,29 +30415,69 @@ var Route = Router.Route;
 var RouteHandler = Router.RouteHandler;
 
 module.exports = React.createClass({displayName: "exports",
+  mixins: [Router.State],
+
+  //getStateFromParams: function() {
+  //  var pageParams = this.getParams().page || 1;
+  //  return { currentPage: pageParams, posts: [] };
+  //},
+
+  getInitialState: function() {
+    var pageParams = this.getParams().page || 1;
+    return { currentPage: pageParams, posts: [] };
+  },
+
+  componentWillReceiveProps: function() {
+    //this.setState(this.getStateFromParams());
+    var pageParams = this.getParams().page || 1;
+    this.setState({currentPage: pageParams });
+
+    this.loadPostsFromPage(pageParams);
+  },
+
+  componentDidMount: function() {
+    this.loadPosts();
+  },
+
+  loadPosts: function() {
+    var url = 'http://staging.shigotodoko.com/posts.json?page=' + this.state.currentPage;
+    this.requestPostsByUrl(url);
+  },
+
+  loadPostsFromPage: function(pageNum) {
+    var url = 'http://staging.shigotodoko.com/posts.json?page=' + pageNum;
+    this.requestPostsByUrl(url);
+  },
+
+  requestPostsByUrl: function(url) {
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      success: function(results) {
+        this.setState({ posts: results.posts });
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+
   render: function() {
+    console.log('vou falar pro paginator e pro postlist que a pagina atual eh : ' + this.state.currentPage);
+
     return(
       React.createElement("div", null, 
         React.createElement("h1", null, "PostsPage"), 
-        React.createElement(PostList, null), 
+        React.createElement(PostList, {posts: this.state.posts}), 
+        React.createElement(Paginator, {currentPage: this.state.currentPage}), 
         React.createElement(RouteHandler, null)
       )
     );
   }
 });
 
-var PostsStats = React.createClass({displayName: "PostsStats",
-  render: function() {
-    return(
-      React.createElement("div", null, 
-        React.createElement("h1", null, "Posts Stats")
-      )
-    );
-  }
-});
 
-
-},{"./app":189,"./post":191,"./postList":192,"./postsPage":194,"react":188,"react-router":29}],195:[function(require,module,exports){
+},{"./app":189,"./paginator":190,"./post":191,"./postList":192,"./postsPage":194,"jquery":1,"react":188,"react-router":29}],195:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
