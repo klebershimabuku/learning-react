@@ -30314,15 +30314,25 @@ var Link = require('react-router').Link;
 module.exports = React.createClass({displayName: "exports",
 
   render: function() {
+    var styles = {
+      paginator: {
+        textDecoration: "none",
+        color: "#00a6d0",
+        border: "1px solid #00a6d0",
+        marginRight: "1px",
+        padding: "0.3em 0.6em"
+      }
+    };
+
     var currentPage = parseInt(this.props.currentPage);
     var nextPage = currentPage + 1;
     var previousPage = currentPage - 1;
 
     return(
       React.createElement("nav", null, 
-        React.createElement("ul", {className: "pager"}, 
-          React.createElement(Link, {to: "paginator", params: { page: previousPage}}, "Previous"), 
-          React.createElement(Link, {to: "paginator", params: { page: nextPage}}, "Next")
+        React.createElement("ul", null, 
+          React.createElement(Link, {to: "paginator", style: styles.paginator, params: { page: previousPage}}, "Página anterior"), 
+          React.createElement(Link, {to: "paginator", style: styles.paginator, params: { page: nextPage}}, "Próxima página")
         )
       )
     );
@@ -30417,35 +30427,31 @@ var RouteHandler = Router.RouteHandler;
 module.exports = React.createClass({displayName: "exports",
   mixins: [Router.State],
 
-  //getStateFromParams: function() {
-  //  var pageParams = this.getParams().page || 1;
-  //  return { currentPage: pageParams, posts: [] };
-  //},
-
   getInitialState: function() {
     var pageParams = this.getParams().page || 1;
     return { currentPage: pageParams, posts: [] };
   },
 
   componentWillReceiveProps: function() {
-    //this.setState(this.getStateFromParams());
     var pageParams = this.getParams().page || 1;
     this.setState({currentPage: pageParams });
 
-    this.loadPostsFromPage(pageParams);
+    this.loadPosts(pageParams);
   },
 
   componentDidMount: function() {
     this.loadPosts();
   },
 
-  loadPosts: function() {
-    var url = 'http://staging.shigotodoko.com/posts.json?page=' + this.state.currentPage;
-    this.requestPostsByUrl(url);
-  },
+  loadPosts: function(pageNum) {
+    var _page = null;
+    if (typeof pageNum !== 'undefined') {
+      _page = pageNum;
+    } else {
+      _page = this.state.currentPage;
+    }
 
-  loadPostsFromPage: function(pageNum) {
-    var url = 'http://staging.shigotodoko.com/posts.json?page=' + pageNum;
+    var url = 'http://staging.shigotodoko.com/posts.json?page=' + _page;
     this.requestPostsByUrl(url);
   },
 
